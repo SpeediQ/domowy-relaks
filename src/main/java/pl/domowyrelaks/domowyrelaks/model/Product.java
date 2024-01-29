@@ -16,6 +16,31 @@ public class Product {
     @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "VISIT_ID")
     private Visit visit;
+    private double value;
+    private int preparationTime;
+
+    public Product() {
+    }
+
+    public double getValue() {
+        return value;
+    }
+
+    public void setValue(double value) {
+        this.value = value;
+    }
+
+    public Product(ProductComponent component) {
+        copyFieldsFromProductComponent(component);
+    }
+
+    private void copyFieldsFromProductComponent(ProductComponent component) {
+        setDesc(component.getDesc());
+        setTitle(component.getTitle());
+        setValue(component.getValue());
+        setPreparationTime(component.getPreparationTime());
+        setComponent(component);
+    }
 
     public Visit getVisit() {
         return visit;
@@ -43,6 +68,14 @@ public class Product {
 
     public ProductComponent getComponent() {
         return component;
+    }
+
+    public int getPreparationTime() {
+        return preparationTime;
+    }
+
+    public void setPreparationTime(int preparationTime) {
+        this.preparationTime = preparationTime;
     }
 
     public void setComponent(ProductComponent component) {

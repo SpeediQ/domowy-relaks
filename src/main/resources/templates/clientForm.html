@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Client Form</title>
+    <!-- Add your CSS and JavaScript imports here -->
+</head>
+<body>
+
+<div class="container">
+    <h2>Client Form</h2>
+
+    <form th:action="@{/saveClient}" th:object="${client}" method="post">
+
+        <div class="form-group">
+            <label for="name">Imię:</label>
+            <input type="text" th:field="*{name}" class="form-control" required/>
+        </div>
+
+        <div class="form-group">
+            <label for="lastname">Nazwisko:</label>
+            <input type="text" th:field="*{lastname}" class="form-control" required/>
+        </div>
+
+        <div class="form-group">
+            <label for="comment">Notatka:</label>
+            <textarea rows="3" th:field="*{comment}" class="form-control"></textarea>
+        </div>
+
+        <!-- Add more fields as needed -->
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Dalej</button>
+        </div>
+    </form>
+
+
+</div>
+
+</body>
+</html>

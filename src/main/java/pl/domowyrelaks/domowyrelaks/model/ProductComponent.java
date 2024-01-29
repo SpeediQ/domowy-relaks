@@ -13,6 +13,7 @@ public class ProductComponent {
     private String title;
 
     private double value;
+    private int preparationTime;
 
     public int getId() {
         return id;
@@ -40,6 +41,14 @@ public class ProductComponent {
 
     public double getValue() {
         return value;
+    }
+
+    public int getPreparationTime() {
+        return preparationTime;
+    }
+
+    public void setPreparationTime(int preparationTime) {
+        this.preparationTime = preparationTime;
     }
 
     public void setValue(double value) {
