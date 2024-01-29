@@ -1,4 +1,4 @@
-package pl.domowyrelaks.domowyrelaks;
+package pl.domowyrelaks.domowyrelaks.calendar;
 
 
 import com.google.api.client.auth.oauth2.Credential;
@@ -20,6 +20,7 @@ import com.google.api.services.calendar.model.EventReminder;
 import com.google.api.services.calendar.model.Events;
 import org.jetbrains.annotations.NotNull;
 import pl.domowyrelaks.domowyrelaks.dto.EventDTO;
+import pl.domowyrelaks.domowyrelaks.model.Visit;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -32,7 +33,7 @@ import java.util.List;
 
 import static pl.domowyrelaks.domowyrelaks.utils.CalendarUtils.getEventByEventDTO;
 import static pl.domowyrelaks.domowyrelaks.utils.CalendarUtils.getEventDateTime;
-import static pl.domowyrelaks.domowyrelaks.utils.ProjectUtils.mapDateTimeFromString;
+import static pl.domowyrelaks.domowyrelaks.utils.ProjectUtils.*;
 
 public class CalendarQuickstart {
     private static final String APPLICATION_NAME = "Google Calendar API Java Quickstart";
@@ -46,6 +47,8 @@ public class CalendarQuickstart {
     public static final String OFFLINE_ACCESS_TYPE = "offline";
     public static final String EMAIL_METHOD = "email";
     public static final String POPUP_METHOD = "popup";
+    public static final String LOCATION = "CITY_ABC";
+    public static final String PREPARATION_TEXT = "Przygotowanie: ";
 
     private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
             throws IOException {
@@ -79,7 +82,8 @@ public class CalendarQuickstart {
     }
 
     private static void testInsertAndDeleteEvent(Calendar service) throws IOException {
-        String eventId = createAndInsertEvent(service);
+        EventDTO eventDTO = prepareEventDTO();
+        String eventId = createAndInsertEvent(service, eventDTO);
 
         service.events().delete(PRIMARY_CALENDAR_ID, eventId).execute();
     }
@@ -112,7 +116,7 @@ public class CalendarQuickstart {
     }
 
     @NotNull
-    private static Calendar prepareCalendarService() throws IOException, GeneralSecurityException {
+    public static Calendar prepareCalendarService() throws IOException, GeneralSecurityException {
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
 
         return new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
@@ -120,20 +124,59 @@ public class CalendarQuickstart {
                 .build();
     }
 
-    public static String createAndInsertEvent(Calendar service) throws IOException {
-        EventDTO eventDTO = new EventDTO("AAAAAA", "MaaaP", "TEST DESC");
+    public static String createAndInsertEvent(Calendar service, EventDTO eventDTO) throws IOException {
 
-        handleEventStartEndDateTime(eventDTO, mapDateTimeFromString("2025-02-01T15:00:00+01:00"),
-                mapDateTimeFromString("2025-02-01T18:00:00+01:00"));
-
-        Event.Reminders reminders = prepareReminders();
-        eventDTO.setReminders(reminders);
 
         Event event = getEventByEventDTO(eventDTO);
         event = insertEvent(service, event);
 
         System.out.printf("Event created: %s\n", event.getHtmlLink());
         return event.getId();
+    }
+
+    @NotNull
+    public static EventDTO prepareEventDTO() {
+        EventDTO eventDTO = new EventDTO("MÓJ WIELKI TEST", "MaaaP", "TEST DESC - WIELKI TEST");
+
+        handleEventStartEndDateTime(eventDTO, mapDateTimeFromString("2025-02-01T15:00:00+01:00"),
+                mapDateTimeFromString("2025-02-01T18:00:00+01:00"));
+
+        Event.Reminders reminders = prepareReminders();
+        eventDTO.setReminders(reminders);
+        return eventDTO;
+    }
+
+    @NotNull
+    public static EventDTO prepareEventDTOFromVisit(Visit visit) {
+        EventDTO eventDTO = new EventDTO();
+        eventDTO.setSummary(visit.getSummary());
+        eventDTO.setDescription(visit.getDesc());
+        eventDTO.setLocation(LOCATION);
+        eventDTO.setStart(mapEventDateTimeFromString(visit.getStart()));
+        eventDTO.setEnd(mapEventDateTimeFromString(visit.getEnd()));
+        Event.Reminders reminders = prepareReminders();
+        eventDTO.setReminders(reminders);
+        return eventDTO;
+    }    @NotNull
+    public static EventDTO preparePreparationEventDTOFromVisit(Visit visit) {
+        EventDTO eventDTO = new EventDTO();
+        eventDTO.setSummary(PREPARATION_TEXT + visit.getSummary());
+        eventDTO.setDescription(visit.getDesc());
+        eventDTO.setLocation(LOCATION);
+        eventDTO.setStart(mapEventDateTimeFromString(getEarlierDateTime(visit.getStart(), visit.getPreparationTime())));
+        eventDTO.setEnd(mapEventDateTimeFromString(visit.getStart()));
+        Event.Reminders reminders = prepareReminders();
+        eventDTO.setReminders(reminders);
+        return eventDTO;
+    }
+
+
+    public static void insertEventsByVisit(Visit visit) throws IOException, GeneralSecurityException {
+        EventDTO eventDTO = prepareEventDTOFromVisit(visit);
+        EventDTO preparationEventDTO = preparePreparationEventDTOFromVisit(visit);
+        Calendar calendar = prepareCalendarService();
+        createAndInsertEvent(calendar, eventDTO);
+        createAndInsertEvent(calendar, preparationEventDTO);
     }
 
     private static Event insertEvent(Calendar service, Event event) throws IOException {
@@ -154,9 +197,9 @@ public class CalendarQuickstart {
 
 
     private static void handleEventStartEndDateTime(EventDTO eventDTO, DateTime startDateTime, DateTime endDateTime) {
-        EventDateTime start = getEventDateTime(startDateTime, EUROPE_WARSAW);
+        EventDateTime start = getEventDateTime(startDateTime);
 
-        EventDateTime end = getEventDateTime(endDateTime, EUROPE_WARSAW);
+        EventDateTime end = getEventDateTime(endDateTime);
         setStartEnd(eventDTO, start, end);
     }
 
