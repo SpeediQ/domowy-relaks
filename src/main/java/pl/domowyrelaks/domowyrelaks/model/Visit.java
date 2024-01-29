@@ -3,6 +3,9 @@ package pl.domowyrelaks.domowyrelaks.model;
 import com.google.api.services.calendar.model.EventDateTime;
 import jakarta.persistence.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 public class Visit {
     @Id
@@ -15,6 +18,21 @@ public class Visit {
     private String start;
     private String end;
     private int preparationTime;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "CLIENT_ID")
+    private Client client;
+
+    @OneToMany(mappedBy = "visit", cascade = CascadeType.ALL)
+    private Set<Product> productSet = new HashSet<>();
+
+    public Set<Product> getProductSet() {
+        return productSet;
+    }
+
+    public void setProductSet(Set<Product> productSet) {
+        this.productSet = productSet;
+    }
 
     public int getId() {
         return id;
@@ -62,5 +80,13 @@ public class Visit {
 
     public void setSummary(String summary) {
         this.summary = summary;
+    }
+
+    public Client getClient() {
+        return client;
+    }
+
+    public void setClient(Client client) {
+        this.client = client;
     }
 }
